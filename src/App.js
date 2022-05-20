@@ -1,23 +1,14 @@
-import logo from './logo.svg';
+import React, {useState } from 'react';
+import MainForm from './components/main/mainForm';
+import Game from './components/game/main.js';
 import './App.css';
 
 function App() {
+
+  const [isFound, setIsFound] = useState(null);
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {!isFound ? <MainForm  setIsFound={setIsFound}/> : <Game />}
     </div>
   );
 }
