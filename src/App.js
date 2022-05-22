@@ -5,7 +5,7 @@ import './App.css';
 
 function App() {
 
-  const [isFound, setIsFound] = useState(null);
+  const [isFound, setIsFound] = useState({});
   return (
     <div className="App">
       {!isFound ? <MainForm  setIsFound={setIsFound}/> : <Game />}

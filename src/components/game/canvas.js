@@ -1,0 +1,152 @@
+import React, { useRef, useEffect, useState } from 'react';
+import styled from 'styled-components';
+import gridManager from './scripts/gridManager';
+import { cellObject } from './scripts/cellObject';
+import mapCoords from './scripts/mapCoords';
+import {
+    SCROLL_SENSITIVITY, cameraZoom, cameraOffset,
+    adjustZoom, onPointerDown, handleTouch,
+    onPointerUp, onPointerMove
+} from './scripts/camera';
+
+const StyledCanvas = styled.canvas`
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: linear-gradient(180deg, #F0F0F0 0%, #E7E7E7 100%);
+    cursor: grab;
+    &:active {
+        cursor: grabbing;
+    }
+`;
+
+export default function Canvas() {
+    const ref = useRef(null);
+    const [ctx, setCtx] = useState(null);
+    const [cells, setCells] = useState(null);
+
+    const [fps, setFps] = useState(60);
+    const [fpsInterval, setFpsInterval] = useState(1000 / fps);
+    const [then, setThen] = useState(Date.now());
+    const [startTime, setStartTime] = useState(then);
+    // const [now, setNow] = useState(null);
+    // const [elapsed, setElapsed] = useState(null);
+    // let fps, fpsInterval, startTime, now, then, elapsed;
+
+    const getPixelData = (imageData) => {
+        const pixels = [];
+        for (let i = imageData.length - 1; i >= 0; i=i-4) {
+            pixels.push([
+                imageData[i - 0],
+                imageData[i - 1],
+                imageData[i - 2],
+                imageData[i - 3]
+            ]);
+        }
+        return pixels;
+    }
+    
+    const drawStuff = () => {
+        const now = Date.now();
+        const elapsed = now - then;
+        if (elapsed > fpsInterval) {
+            setThen(now - (elapsed % fpsInterval));
+    
+            const canvas = ref.current;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+    
+            ctx.translate( window.innerWidth / 2, window.innerHeight / 2 );
+            ctx.scale(cameraZoom, cameraZoom);
+            ctx.translate( -window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y );
+            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            // const grdBg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            // grdBg.addColorStop(0, "#F0F0F0");
+            // grdBg.addColorStop(1, "#E7E7E7");
+            // ctx.fillStyle = grdBg;
+            // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            // create background color
+            // ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+            //////////////////// get map coords from image data
+            // const img = new Image();
+            // img.src = "africa.svg";
+            // img.onload = function() {
+            //     ctx.drawImage(img, 0, 0, 40, 40);
+            //     const rgbaConcat = ctx.getImageData(0, 0, canvas.offsetWidth, canvas.offsetHeight).data;
+            //     const pixels = getPixelData(rgbaConcat)
+            //     const grid = new gridManager(canvas.offsetWidth, canvas.offsetHeight, 16, 16, pixels);
+            //     const generateMapCoords = grid.createGrid(ctx);
+    
+            //     let cellObjects = [];
+            //     generateMapCoords.map(({x, y}, idx) => {
+            //         const cell = new cellObject(idx, x, y, {w: 16, h: 16}, 6)
+            //         cell.draw(ctx);
+            //         cellObjects.push(cell);
+            //     })
+            //     console.log(generateMapCoords)
+            // }
+            cells.map((cell, index) => {
+                cell.update();
+                setTimeout(() => {
+                    cell.animation();
+                    
+                }, 800 * index);
+            })
+            
+            // cellObjects[0].color = '#FF0000';
+            // cellObjects[0].draw(ctx);
+    
+        }
+
+    }
+
+    const animate = () => {
+        requestAnimationFrame(animate);
+        drawStuff();
+    }
+
+    useEffect(() => {
+        const canvas = ref.current;
+        setCtx(canvas.getContext('2d'));
+    }, []);
+
+    useEffect(() => {
+        if(!ctx) return;
+        let cellObjects = [];
+        mapCoords.map(({x, y}, idx) => {
+            const cell = new cellObject(ctx, idx, x, y, {w: 16, h: 16}, 6)
+            cellObjects.push(cell);
+        })
+        setCells(cellObjects);
+    }, [ctx]);
+
+    useEffect(() => {
+        if(!cells) return;
+        setFpsInterval(1000 / fps);
+        setThen(Date.now());
+        setStartTime(then);
+
+        animate();
+        const canvas = ref.current;
+        canvas.addEventListener('mousedown', onPointerDown)
+        canvas.addEventListener('touchstart', (e) => handleTouch(e, onPointerDown))
+        canvas.addEventListener('mouseup', onPointerUp)
+        canvas.addEventListener('touchend',  (e) => handleTouch(e, onPointerUp))
+        canvas.addEventListener('mousemove', onPointerMove)
+        canvas.addEventListener('touchmove', (e) => handleTouch(e, onPointerMove))
+        canvas.addEventListener('wheel', (e) => adjustZoom(e.deltaY*SCROLL_SENSITIVITY))
+        return () => {
+            canvas.removeEventListener('mousedown', onPointerDown)
+            canvas.removeEventListener('touchstart', (e) => handleTouch)
+            canvas.removeEventListener('mouseup', onPointerUp)
+            canvas.removeEventListener('touchend',  (e) => handleTouch)
+            canvas.removeEventListener('mousemove', onPointerMove)
+            canvas.removeEventListener('touchmove', (e) => handleTouch)
+            canvas.removeEventListener('wheel', (e) => adjustZoom)
+        };
+    }, [cells]);
+    return (
+        <StyledCanvas ref={ref} id='game'>Your browser does not support canvas.</StyledCanvas>
+    );
+}

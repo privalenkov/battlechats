@@ -54,10 +54,7 @@ const MainFormStyle = styled.div`
         transition: all 0.5s, transform 0.5s;
     }
 
-    .message-enter {
-        opacity: 0;
-        transform: scale(0.9);
-    }
+    
     .message {
         opacity: 0;
     }
@@ -71,8 +68,7 @@ const MainFormStyle = styled.div`
         transform: scale(0.9);
         opacity: 0;
     }
-    .message-exit-active {
-        transition: all 0.2s, transform 0.5s;
+    .message-exit {
         opacity: 1;
     }
 `;
@@ -149,13 +145,13 @@ export default function MainForm({setIsFound}) {
 
     const isLoadCb = () => setIsLoad(true);
     const inputRef = useRef(null);
-
+    const foundPattern = 'jesusAVGN';
     const debouncedValue = useDebounced((newValue) => {
         console.log(newValue)
         if (newValue.toUpperCase() === foundPattern.toUpperCase()) {
             setIsFound(true)
         } else {
-            setText('DASASfdddddddddddddddddddddddddddddddddddddddODOAOA')
+            setText('No such streamer was found')
             setShowMessage(true);
             setTimeout(() => {
                 setShowMessage(false);
@@ -163,7 +159,7 @@ export default function MainForm({setIsFound}) {
         }
     }, 1000);
 
-    const foundPattern = 'jesusAVGN';
+    
 
 
     const handlInputChange = (e) => {
@@ -173,7 +169,6 @@ export default function MainForm({setIsFound}) {
         setTimeout(() => {
             if(inputRef.current) inputRef.current.classList.add('bounceIn');
         }, 100);
-        // setIsFound(true);
     }
 
     return (
