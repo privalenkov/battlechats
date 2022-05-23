@@ -1,11 +1,11 @@
-const MAX_ZOOM = 5;
-const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 3;
+const MIN_ZOOM = 0.3;
 const SCROLL_SENSITIVITY = 0.0005;
 
 let isDragging = false;
 let dragStart = { x: 0, y: 0 };
 
-let cameraOffset = { x: window.innerWidth/2, y: window.innerHeight/2 };
+let cameraOffset = { x: window.innerWidth/2 + 700, y: window.innerHeight/2 + 800 };
 let cameraZoom = 1;
 
 let initialPinchDistance = null;

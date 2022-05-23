@@ -71,15 +71,15 @@ export default class gridManager {
         const gridMap = [];
         for (let i = data.length - 1; i >= 0; i--) {
             for (let j = data[i].length - 1; j >= 0; j--) {
-                const y = 18900 - (cellHeight * i) * cellOffset;
-                const x = 26600 - (cellWidth * j) * cellOffset;
+                const y = gridHeight - (cellHeight * i) * cellOffset;
+                const x = gridWidth - (cellWidth * j) * cellOffset;
                 
                 const template = data[i][j];
                 if (template[0] > 10 ) {
                     // ctx.fillStyle = '#ff0000';
                     // this._roundRect(ctx, x, y, cellWidth, cellHeight, radius, true, false);
 
-                    gridMap.push({x, y});
+                    gridMap.push({x: Math.floor(x), y: Math.floor(y)});
                 }
             }
         }

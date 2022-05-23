@@ -8,8 +8,10 @@ class cellObject {
         this.color = color;
         this.team = team;
         this.id = id;
-        this.isAnim = true;
-        this.animState = 'start';
+
+        this.frame = 0;
+        this.currentAnim = null;
+        this.animations = ['changeColor'];
     };
 
     _roundRect(ctx, x, y, width, height, radius, fill, stroke) {
@@ -42,35 +44,32 @@ class cellObject {
         }
     }
 
-    animation() {
-        if(this.isAnim) {
-            switch (this.animState) {
-                case 'start':
-                    if (this.size.w >= 18 && this.size.h >= 18) {
-                        this.color = '#DA5151';
-                        this.animState = 'end'
-                    };
-                    this.x -= 0.1;
-                    this.y -= 0.1;
-                    this.size.w += 0.15;
-                    this.size.h += 0.15;
-                    
-                    break;
-                case 'end':
-                    if (this.size.w <= 16 && this.size.h <= 16) {
-                        
-                        this.isAnim = false
-                    
-                    }
-                    this.x += 0.1;
-                    this.y += 0.1;
-                    this.size.w -= 0.15;
-                    this.size.h -= 0.15;
-                    
-                    break;
-                default:
-                    break;
-            }
+    _animation() {
+        const find = this.animations.find(anim => anim === this.currentAnim);
+        let frame = this.frame;
+        switch (find) {
+            case 'changeColor':
+                if(frame >= 0 && frame <= 20) {
+                    if (this.size.w >= 17) break;
+                    this.color = '#DA5151';
+                    this.x -= 0.005;
+                    this.y -= 0.005;
+                    this.size.w += 0.010;
+                    this.size.h += 0.010;
+                } else if(frame >= 20 && frame <= 40){
+                    if (this.size.w <= 15) break;
+                    this.x += 0.005;
+                    this.y += 0.005;
+                    this.size.w -= 0.010;
+                    this.size.h -= 0.010;
+                } else {
+                    this.frame = 0;
+                    this.currentAnim = null;
+                }
+                
+                break;
+            default:
+                break;
         }
     }
 
@@ -81,15 +80,28 @@ class cellObject {
         this.color = grdBg;
     }
     render() {
-        const grdBg = this.ctx.createLinearGradient(0, 0, this.size.w, this.size.h);
-        grdBg.addColorStop(0, "#C9C9C9");
-        grdBg.addColorStop(1, "#B9B9B9");
-
-        this.ctx.fillStyle = this.color ? this.color : grdBg;
-        this._roundRect(this.ctx, this.x, this.y, this.size.w, this.size.h, this.borderRadius, true, false);
+        const ctx = this.ctx,
+        color = this.color,
+        x = this.x,
+        y = this.y,
+        size = this.size,
+        borderRadius = this.borderRadius;
+        
+        ctx.clearRect(x, y, size.w, size.h);
+        if (!color) {
+            const grdBg = ctx.createLinearGradient(0, 0, size.w, size.h);
+            grdBg.addColorStop(0, "#C9C9C9");
+            grdBg.addColorStop(1, "#B9B9B9");
+            ctx.fillStyle = grdBg;
+        } else {
+            ctx.fillStyle = color;
+        }
+        this._roundRect(ctx, this.x, this.y, size.w, size.h, borderRadius, true, false);
     }
 
     update() {
+        this.frame++;
+        this._animation();
         this.render();
     }
 }

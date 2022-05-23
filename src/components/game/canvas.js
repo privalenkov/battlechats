@@ -45,54 +45,59 @@ export default function Canvas() {
         }
         return pixels;
     }
-    
+    const generateGrid = (document, imageSrc) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.src = imageSrc;
+        img.onload = function() {
+            console.log(ctx)
+            ctx.drawImage(img, 0, 0, 40, 40);
+            const rgbaConcat = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            const pixels = getPixelData(rgbaConcat)
+            const grid = new gridManager(canvas.width, canvas.height, 16, 16, pixels);
+            const generateMapCoords = grid.createGrid(ctx);
+            console.log(generateMapCoords)
+        }
+    }
+
+    const resizeCanvas = (canvas) => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
     const drawStuff = () => {
         const now = Date.now();
         const elapsed = now - then;
         if (elapsed > fpsInterval) {
             setThen(now - (elapsed % fpsInterval));
-    
-            const canvas = ref.current;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-    
+            resizeCanvas(ref.current);
             ctx.translate( window.innerWidth / 2, window.innerHeight / 2 );
             ctx.scale(cameraZoom, cameraZoom);
             ctx.translate( -window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y );
-            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
             // const grdBg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
             // grdBg.addColorStop(0, "#F0F0F0");
             // grdBg.addColorStop(1, "#E7E7E7");
             // ctx.fillStyle = grdBg;
-            // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
             // create background color
             // ctx.fillRect(0, 0, canvas.width, canvas.height);
     
             //////////////////// get map coords from image data
-            // const img = new Image();
-            // img.src = "africa.svg";
-            // img.onload = function() {
-            //     ctx.drawImage(img, 0, 0, 40, 40);
-            //     const rgbaConcat = ctx.getImageData(0, 0, canvas.offsetWidth, canvas.offsetHeight).data;
-            //     const pixels = getPixelData(rgbaConcat)
-            //     const grid = new gridManager(canvas.offsetWidth, canvas.offsetHeight, 16, 16, pixels);
-            //     const generateMapCoords = grid.createGrid(ctx);
-    
-            //     let cellObjects = [];
-            //     generateMapCoords.map(({x, y}, idx) => {
-            //         const cell = new cellObject(idx, x, y, {w: 16, h: 16}, 6)
-            //         cell.draw(ctx);
-            //         cellObjects.push(cell);
-            //     })
-            //     console.log(generateMapCoords)
-            // }
-            cells.map((cell, index) => {
-                cell.update();
-                setTimeout(() => {
-                    cell.animation();
-                    
-                }, 800 * index);
-            })
+
+            for (let index = cells.length - 1; index >= 0; index--) {
+                // setTimeout(() => {
+                // }, 800 * index);
+                cells[index].currentAnim = 'changeColor';
+                cells[index].update();
+            }
+            // cells.map((cell, index) => {
+            //     setTimeout(() => {
+            //         cell.animation();
+            //     }, 800 * index);
+            //     cell.update();
+            // })
             
             // cellObjects[0].color = '#FF0000';
             // cellObjects[0].draw(ctx);
@@ -108,11 +113,13 @@ export default function Canvas() {
 
     useEffect(() => {
         const canvas = ref.current;
+        resizeCanvas(canvas);
         setCtx(canvas.getContext('2d'));
     }, []);
 
     useEffect(() => {
         if(!ctx) return;
+        // generateGrid(document, 'africa.svg');
         let cellObjects = [];
         mapCoords.map(({x, y}, idx) => {
             const cell = new cellObject(ctx, idx, x, y, {w: 16, h: 16}, 6)
